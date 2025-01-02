@@ -8,27 +8,64 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ToggleOnIcon from "@mui/icons-material/ToggleOn";
 import ToggleOffIcon from "@mui/icons-material/ToggleOff";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useNavigate } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
+import TableHeader from "../../components/fragments/TableHeader";
+import { useKeyword } from "../../context/KeywordContext";
 
 const User = () => {
   const { message, setMessage } = useMessage();
+  const { userEmail } = useKeyword();
+
   const [users, setUsers] = useState([]);
+  const [startCount, setStartCount] = useState(0);
+  const [endCount, setEndCount] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [limit, setLimit] = useState(4);
+  const [sortBy, setSortBy] = useState("id");
+  const [sortDir, setSortDir] = useState("asc");
+  const [keyword, setKeyword] = useState(userEmail);
+
   const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    document.title = "Users";
+  }, []);
+
   useEffect(() => {
     const getUsers = async () => {
       try {
-        const res = await UserAPI.getAllUser();
-        setUsers(res);
+        const res = await UserAPI.getAllUser(
+          page,
+          limit,
+          sortBy,
+          sortDir,
+          keyword
+        );
+        setUsers(res.content);
+        setTotalElements(res.totalElements);
+        setTotalPages(res.totalPages);
+
+        const newStartCount = (page - 1) * limit + 1;
+        const newEndCount = Math.min(
+          newStartCount + limit - 1,
+          res.totalElements
+        );
+
+        setStartCount(newStartCount);
+        setEndCount(newEndCount);
       } catch (error) {
         console.log(error);
       }
     };
-    document.title = "Users";
     getUsers();
-  }, []);
+  }, [page, limit, sortBy, sortDir]);
 
   const handleUserStatus = async (user) => {
     try {
@@ -71,6 +108,44 @@ const User = () => {
       handleCloseModal();
     }
   };
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortDir((prevSortDir) => (prevSortDir === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortDir("asc");
+    }
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    try {
+      setPage(1);
+      const res = await UserAPI.getAllUser(
+        page,
+        limit,
+        sortBy,
+        sortDir,
+        keyword
+      );
+      setUsers(res.content);
+      setTotalElements(res.totalElements);
+      setTotalPages(res.totalPages);
+
+      const newStartCount = (page - 1) * limit + 1;
+      const newEndCount = Math.min(
+        newStartCount + limit - 1,
+        res.totalElements
+      );
+
+      setStartCount(newStartCount);
+      setEndCount(newEndCount);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="container-fluid">
       <Navbar />
@@ -79,17 +154,68 @@ const User = () => {
       {message && (
         <div className="alert alert-success text-center">{message}</div>
       )}
+      <form onSubmit={handleSearch} className="form-inline m-3">
+        <input
+          type="search"
+          className="form-control"
+          required
+          onChange={(e) => setKeyword(e.target.value)}
+        />
+        <input type="submit" className="btn btn-primary ml-1" value="Search" />
+        <input
+          type="button"
+          className="btn btn-secondary ml-1"
+          value="Clear"
+          onClick={() => window.location.reload()}
+        />
+      </form>
       <div>
         <table className="table table-bordered table-striped table-hover table-responsive-xl">
           <thead className="thead-dark">
             <tr>
-              <th>User ID</th>
+              <TableHeader
+                label="User ID"
+                field="id"
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
               <th>Photo</th>
-              <th>Email</th>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Roles</th>
-              <th>Enabled</th>
+              <TableHeader
+                label="Email"
+                field="email"
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <TableHeader
+                label="First Name"
+                field="firstName"
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <TableHeader
+                label="Last Name"
+                field="lastName"
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <TableHeader
+                label="Roles"
+                field="roles"
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <TableHeader
+                label="Enabled"
+                field="enable"
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
               <th>Action</th>
             </tr>
           </thead>
@@ -142,6 +268,59 @@ const User = () => {
           </tbody>
         </table>
       </div>
+
+      <div className="text-center m-1">
+        {totalElements > 0 ? (
+          <span>
+            Showing users #{startCount} to {endCount} of {totalElements}{" "}
+            elements
+          </span>
+        ) : (
+          <span>No user found</span>
+        )}
+      </div>
+      {totalPages > 1 && (
+        <div>
+          <nav>
+            <ul className="pagination justify-content-center">
+              <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                <a className="page-link" onClick={() => setPage(1)}>
+                  First
+                </a>
+              </li>
+              <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                <a className="page-link" onClick={() => setPage(page - 1)}>
+                  Previous
+                </a>
+              </li>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <li
+                  key={i}
+                  className={`page-item ${page === i + 1 ? "active" : ""}`}
+                >
+                  <a className="page-link" onClick={() => setPage(i + 1)}>
+                    {i + 1}
+                  </a>
+                </li>
+              ))}
+              <li
+                className={`page-item ${page === totalPages ? "disabled" : ""}`}
+              >
+                <a className="page-link" onClick={() => setPage(page + 1)}>
+                  Next
+                </a>
+              </li>
+              <li
+                className={`page-item ${page === totalPages ? "disabled" : ""}`}
+              >
+                <a className="page-link" onClick={() => setPage(totalPages)}>
+                  Last
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      )}
       {showModal && (
         <Modal
           title="Delete confirmation"

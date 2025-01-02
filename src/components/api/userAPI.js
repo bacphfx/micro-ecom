@@ -1,9 +1,10 @@
 import axiosClient from "../../utils/axios";
 const UserAPI = {
-  getAllUser: () => {
-    const url = "/users";
+  getAllUser: (page, limit, sortBy, sortDir, keyword) => {
+    const url = `/users?page=${page}&limit=${limit}&sortBy=${sortBy}&sortDir=${sortDir}&keyword=${keyword}`;
     return axiosClient.get(url);
   },
+
   saveUser: (data) => {
     const url = "/users";
     return axiosClient.post(url, data);

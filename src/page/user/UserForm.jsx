@@ -6,12 +6,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useMessage } from "../../context/MessageContext";
 import Modal from "../../components/modal/Modal";
 import default_image from "../../assets/images/default-user.png";
+import { useKeyword } from "../../context/KeywordContext";
 
 function UserForm() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user || {};
   const { setMessage } = useMessage();
+  const { setUserEmail } = useKeyword();
   const [formData, setFormData] = useState({
     id: user.id || "",
     email: user.email || "",
@@ -97,6 +99,7 @@ function UserForm() {
         await UserAPI.editUser(user.id, formData);
       }
       setMessage("The user has been saved successfully!");
+      setUserEmail(formData.email);
       navigate("/users");
     } catch (error) {
       console.log(error);
