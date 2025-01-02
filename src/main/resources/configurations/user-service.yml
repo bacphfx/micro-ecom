@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/micro_ecom_user?createDatabaseIfNotExist=true
+
+server:
+  port: 8081
