@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: user-service
+  config:
+    import: configserver:http://localhost:8888
+  cloud:
+    config:
+      fail-fast: false
+  servlet:
+    multipart:
+      enabled: true
+
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: http://localhost:9000
+#          jwk-set-uri: http://localhost:9000/oauth2/jwks
