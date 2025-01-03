@@ -2,13 +2,12 @@ package com.ecommerce.UserService.service;
 
 import com.ecommerce.UserService.model.UserRequest;
 import com.ecommerce.UserService.model.UserResponse;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
 
 import java.io.IOException;
-import java.util.List;
 
 public interface UserService {
-    List<UserResponse> listAll();
+    Page<UserResponse> listAll(int pageNum, int pageSize, String sortBy, String sortDir, String keyword);
 
     UserResponse createUser(UserRequest userRequest);
 

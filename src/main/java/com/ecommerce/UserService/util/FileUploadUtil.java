@@ -11,8 +11,7 @@ import java.nio.file.StandardCopyOption;
 
 public class FileUploadUtil {
     public static void saveFile(String uploadDir, String fileName, MultipartFile file) throws IOException {
-        Path projectPath = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-        Path uploadPath = projectPath.resolve(uploadDir);
+        Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)){
             Files.createDirectories(uploadPath);
         }
@@ -25,8 +24,7 @@ public class FileUploadUtil {
     }
 
     public static void cleanDir(String dir){
-        Path projectPath = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-        Path dirPath = projectPath.resolve(dir);
+        Path dirPath = Paths.get(dir);
         try {
             Files.list(dirPath).forEach(file->{
                 if(!Files.isDirectory(file)){

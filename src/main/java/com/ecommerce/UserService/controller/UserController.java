@@ -7,6 +7,7 @@ import com.ecommerce.UserService.util.FileUploadUtil;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -43,8 +44,12 @@ public class UserController {
 
     @GetMapping
     @PermitAll
-    public ResponseEntity<List<UserResponse>> findAll() {
-        return ResponseEntity.ok(service.listAll());
+    public ResponseEntity<Page<UserResponse>> findAll(@RequestParam(value = "page", defaultValue = "1") int pageNum,
+                                                      @RequestParam(value = "limit", defaultValue = "4") int pageSize,
+                                                      @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
+                                                      @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir,
+                                                      @RequestParam(value = "keyword", required = false) String keyword) {
+        return ResponseEntity.ok(service.listAll(pageNum, pageSize, sortBy, sortDir, keyword));
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

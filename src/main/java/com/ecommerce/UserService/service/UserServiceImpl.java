@@ -9,8 +9,10 @@ import com.ecommerce.UserService.repository.UserRepository;
 import com.ecommerce.UserService.util.FileUploadUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +20,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @Transactional
@@ -30,12 +30,18 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public List<UserResponse> listAll() {
-        List<UserResponse> userResponses = new ArrayList<>();
-        repository.findAll().forEach(user -> {
-            userResponses.add(mapper.fromUser(user));
-        });
-        return userResponses;
+    public Page<UserResponse> listAll(int pageNum, int pageSize, String sortBy, String sortDir, String keyword) {
+        Sort sort = Sort.by(sortBy);
+        sort = sortDir.equals("asc") ? sort.ascending() : sort.descending();
+
+        Pageable pageable = PageRequest.of(pageNum - 1, pageSize, sort);
+        Page<User> users;
+        if (keyword != null && !keyword.equals("")) {
+            users = repository.findAll(keyword, pageable);
+        }else {
+            users = repository.findAll(pageable);
+        }
+        return users.map(mapper::fromUser);
     }
 
     @Override
