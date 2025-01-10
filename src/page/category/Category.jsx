@@ -12,41 +12,42 @@ import { Link, useNavigate } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
 import TableHeader from "../../components/fragments/TableHeader";
 import { useUserEdited } from "../../context/UserEditedContext";
+import CategoryAPI from "../../components/api/categoryAPI";
+import axios from "axios";
 import Pagination from "../../components/fragments/Pagination";
 
-const User = () => {
+const Category = () => {
   const { message, setMessage } = useMessage();
   const { userEmail } = useUserEdited();
-  const [users, setUsers] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [startCount, setStartCount] = useState(0);
   const [endCount, setEndCount] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(4);
-  const [sortBy, setSortBy] = useState("id");
+  const [sortBy, setSortBy] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
   const [keyword, setKeyword] = useState(userEmail);
 
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedCate, setSelectedCate] = useState(null);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    document.title = "Users";
+    document.title = "Categories";
   }, []);
 
   useEffect(() => {
-    const getUsers = async () => {
+    const getCategories = async () => {
       try {
-        const res = await UserAPI.getAllUser(
+        const res = await CategoryAPI.getAllCategory(
           page,
           limit,
-          sortBy,
           sortDir,
           keyword
         );
-        setUsers(res.content);
+        setCategories(res.content);
         setTotalElements(res.totalElements);
         setTotalPages(res.totalPages);
 
@@ -62,43 +63,42 @@ const User = () => {
         console.log(error);
       }
     };
-    getUsers();
+    getCategories();
   }, [page, limit, sortBy, sortDir]);
 
-  const handleUserStatus = async (user) => {
+  const handleCategoryStatus = async (cate) => {
     try {
-      const res = await UserAPI.updateStatus(user.id, !user.enable);
+      const res = await CategoryAPI.updateStatus(cate.id, !cate.enable);
       setMessage(res);
-      setUsers((prevUsers) =>
-        prevUsers.map((u) =>
-          u.id === user.id ? { ...u, enable: !user.enable } : u
+      setCategories((prevCates) =>
+        prevCates.map((c) =>
+          c.id === cate.id ? { ...c, enable: !cate.enable } : c
         )
       );
     } catch (error) {
       console.log(error);
     }
   };
-
-  const handleEdit = (user) => {
-    navigate("/users/save", { state: { user } });
+  const handleEdit = (category) => {
+    navigate("/categories/save", { state: { category } });
   };
 
-  const handleDelete = (user) => {
-    setSelectedUser(user);
+  const handleDelete = (category) => {
+    setSelectedCate(category);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setSelectedUser(null);
+    setSelectedCate(null);
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      const res = await UserAPI.deleteUser(selectedUser.id);
+      const res = await CategoryAPI.deleteCategory(selectedCate.id);
       setMessage(res);
-      setUsers((prevUsers) =>
-        prevUsers.filter((u) => u.id !== selectedUser.id)
+      setCategories((prevCates) =>
+        prevCates.filter((cate) => cate.id !== selectedCate.id)
       );
     } catch (error) {
       if (error.status === 403) {
@@ -129,18 +129,18 @@ const User = () => {
         sortDir,
         keyword
       );
-      setUsers(res.content);
-      setTotalElements(res.totalElements);
-      setTotalPages(res.totalPages);
+      setCategories(res);
+      // setTotalElements(res.totalElements);
+      // setTotalPages(res.totalPages);
 
-      const newStartCount = (page - 1) * limit + 1;
-      const newEndCount = Math.min(
-        newStartCount + limit - 1,
-        res.totalElements
-      );
+      // const newStartCount = (page - 1) * limit + 1;
+      // const newEndCount = Math.min(
+      //   newStartCount + limit - 1,
+      //   res.totalElements
+      // );
 
-      setStartCount(newStartCount);
-      setEndCount(newEndCount);
+      // setStartCount(newStartCount);
+      // setEndCount(newEndCount);
     } catch (error) {
       console.log(error);
     }
@@ -153,8 +153,8 @@ const User = () => {
   return (
     <div className="container-fluid">
       <Navbar />
-      <h2>Manager Users</h2>
-      <Link to="/users/save">Create new user</Link>
+      <h2>Manager Categories</h2>
+      <Link to="/categories/save">Create new category</Link>
       {message && (
         <div className="alert alert-success text-center">{message}</div>
       )}
@@ -177,61 +177,29 @@ const User = () => {
         <table className="table table-bordered table-striped table-hover table-responsive-xl">
           <thead className="thead-dark">
             <tr>
+              <th>ID</th>
+              <th>Image</th>
               <TableHeader
-                label="User ID"
-                field="id"
-                sortBy={sortBy}
+                label="Category Name"
+                field="name"
+                sortBy="name"
                 sortDir={sortDir}
                 onSort={handleSort}
               />
-              <th>Photo</th>
-              <TableHeader
-                label="Email"
-                field="email"
-                sortBy={sortBy}
-                sortDir={sortDir}
-                onSort={handleSort}
-              />
-              <TableHeader
-                label="First Name"
-                field="firstName"
-                sortBy={sortBy}
-                sortDir={sortDir}
-                onSort={handleSort}
-              />
-              <TableHeader
-                label="Last Name"
-                field="lastName"
-                sortBy={sortBy}
-                sortDir={sortDir}
-                onSort={handleSort}
-              />
-              <TableHeader
-                label="Roles"
-                field="roles"
-                sortBy={sortBy}
-                sortDir={sortDir}
-                onSort={handleSort}
-              />
-              <TableHeader
-                label="Enabled"
-                field="enable"
-                sortBy={sortBy}
-                sortDir={sortDir}
-                onSort={handleSort}
-              />
+              <th>Alias</th>
+              <th>Enabled</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {users?.map((user) => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
+            {categories?.map((cate) => (
+              <tr key={cate.id}>
+                <td>{cate.id}</td>
                 <td>
-                  {user.photos ? (
+                  {cate.image ? (
                     <img
-                      src={`http://localhost:8080/users/${user.photos}`}
-                      alt="user"
+                      src={`http://localhost:8080/categories/${cate.image}`}
+                      alt="category"
                       className="image-fluid"
                       style={{ width: 150 }}
                     />
@@ -239,33 +207,33 @@ const User = () => {
                     <PortraitIcon style={{ fontSize: 60, color: "gray" }} />
                   )}
                 </td>
-                <td>{user.email}</td>
-                <td>{user.firstName}</td>
-                <td>{user.lastName}</td>
-                <td>{user.roles.join(", ").toLowerCase()}</td>
+                <td>{cate.name}</td>
+                <td>{cate.alias}</td>
                 <td>
-                  {user.enable ? (
+                  {cate.enable ? (
                     <ToggleOnIcon
                       style={{ fontSize: 30, color: "green" }}
-                      onClick={() => handleUserStatus(user)}
+                      onClick={() => handleCategoryStatus(cate)}
                     />
                   ) : (
                     <ToggleOffIcon
                       style={{ fontSize: 30, color: "gray" }}
-                      onClick={() => handleUserStatus(user)}
+                      onClick={() => handleCategoryStatus(cate)}
                     />
                   )}
                 </td>
                 <td>
                   <EditIcon
                     style={{ color: "green", fontSize: 30 }}
-                    onClick={() => handleEdit(user)}
+                    onClick={() => handleEdit(cate)}
                   />{" "}
                   &nbsp;{" "}
-                  <DeleteIcon
-                    style={{ color: "gray", fontSize: 30 }}
-                    onClick={() => handleDelete(user)}
-                  />
+                  {!cate.hasChildren && (
+                    <DeleteIcon
+                      style={{ color: "gray", fontSize: 30 }}
+                      onClick={() => handleDelete(cate)}
+                    />
+                  )}
                 </td>
               </tr>
             ))}
@@ -275,11 +243,11 @@ const User = () => {
       <div className="text-center m-1">
         {totalElements > 0 ? (
           <span>
-            Showing users #{startCount} to {endCount} of {totalElements}{" "}
+            Showing categories #{startCount} to {endCount} of {totalElements}{" "}
             elements
           </span>
         ) : (
-          <span>No user found</span>
+          <span>No category found</span>
         )}
       </div>
       {totalPages > 1 && (
@@ -292,7 +260,7 @@ const User = () => {
       {showModal && (
         <Modal
           title="Delete confirmation"
-          message={`Are you sure you want to delete this user ID ${selectedUser.id}?`}
+          message={`Are you sure you want to delete this category ID ${selectedCate.id}?`}
           onConfirm={handleDeleteConfirm}
           onClose={handleCloseModal}
           type="confirm"
@@ -302,4 +270,4 @@ const User = () => {
     </div>
   );
 };
-export default User;
+export default Category;

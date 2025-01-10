@@ -1,37 +1,34 @@
 import { useEffect, useState } from "react";
 import Footer from "../../components/footer/Footer";
 import Navbar from "../../components/navbar/Navbar";
-import UserAPI from "../../components/api/userAPI";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMessage } from "../../context/MessageContext";
 import Modal from "../../components/modal/Modal";
-import default_image from "../../assets/images/default-user.png";
-import { useUserEdited } from "../../context/UserEditedContext";
+import default_image from "../../assets/images/image-thumbnail.png";
+import CategoryAPI from "../../components/api/categoryAPI";
 
-function UserForm() {
+function CategoryForm() {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = location.state?.user || {};
+  const category = location.state?.category || {};
   const { setMessage } = useMessage();
-  const { setUserEmail } = useUserEdited();
+  const [categoriesInForm, setCategoriesInForm] = useState([]);
   const [formData, setFormData] = useState({
-    id: user.id || "",
-    email: user.email || "",
-    password: "",
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    roles: user.roles || [],
-    enable: user.enable || false,
-    photos: user.photos || "",
+    id: category.id || "",
+    name: category.name?.replaceAll("-", "") || "",
+    alias: category.alias || "",
+    parentId: category.parentId || "",
+    enable: category.enable || false,
+    image: category.image || "",
     file: null,
   });
 
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  const [image, setImage] = useState(
-    formData.photos
-      ? `http://localhost:8080/users/${formData.photos}`
+  const [imagePreview, setImagePreview] = useState(
+    formData.image
+      ? `http://localhost:8080/categories/${formData.image}`
       : default_image
   );
   const handleImageChange = (event) => {
@@ -47,17 +44,26 @@ function UserForm() {
       setFormData((prev) => ({ ...prev, file: file }));
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImage(e.target.result);
+        setImagePreview(e.target.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const roles = ["ROLE_ADMIN", "ROLE_EDITOR", "ROLE_SHIPPER"];
-
   useEffect(() => {
-    document.title = user.id ? `Edit User (ID: ${user.id})` : "Create New User";
-  });
+    document.title = category.id
+      ? `Edit Category (ID: ${category.id})`
+      : "Create New Category";
+    const getCategoriesInForm = async () => {
+      try {
+        const res = await CategoryAPI.getCategoriesInForm();
+        setCategoriesInForm(res);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getCategoriesInForm();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -65,20 +71,19 @@ function UserForm() {
   };
 
   const handleCheckbox = (e) => {
-    const { name, value, checked } = e.target;
-    if (name === "roles") {
-      setFormData((prev) => ({
-        ...prev,
-        roles: checked
-          ? [...prev.roles, value]
-          : prev.roles.filter((role) => role !== value),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: checked,
-      }));
-    }
+    const { name, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: checked,
+    }));
+  };
+
+  const handleParentChange = (event) => {
+    const selectedId = event.target.value;
+    setFormData((prevData) => ({
+      ...prevData,
+      parentId: selectedId,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -86,23 +91,20 @@ function UserForm() {
     try {
       const data = new FormData();
       data.append("id", formData.id);
-      data.append("email", formData.email);
-      data.append("password", formData.password);
-      data.append("firstName", formData.firstName);
-      data.append("lastName", formData.lastName);
+      data.append("name", formData.name);
+      data.append("alias", formData.alias);
+      data.append("parentId", formData.parentId);
       data.append("enable", formData.enable);
-      data.append("roles", formData.roles);
       if (formData.file) {
         data.append("file", formData.file);
       }
-      if (!user.id) {
-        await UserAPI.saveUser(data);
+      if (!category.id) {
+        await CategoryAPI.saveCategory(data);
       } else {
-        await UserAPI.editUser(user.id, formData);
+        await CategoryAPI.editCategory(category.id, formData);
       }
-      setMessage("The user has been saved successfully!");
-      setUserEmail(formData.email);
-      navigate("/users");
+      setMessage("The category has been saved successfully!");
+      navigate("/categories");
     } catch (error) {
       console.log(error);
       setError(error.response.data.error);
@@ -119,8 +121,10 @@ function UserForm() {
     <div className="container-fluid">
       <Navbar />
       <h2>
-        Manager Users |{" "}
-        {user.id ? `Edit User (ID: ${user.id})` : "Create New User"}
+        Manager Category |{" "}
+        {category.id
+          ? `Edit Category (ID: ${category.id})`
+          : "Create New Category"}
       </h2>
       <form
         onSubmit={handleSubmit}
@@ -128,93 +132,52 @@ function UserForm() {
       >
         <div className="border border-secondary rounded p-3">
           <div className="form-group row">
-            <label className="col-sm-4 col-form-label">Email:</label>
+            <label className="col-sm-4 col-form-label">Category name:</label>
             <div className="col-sm-8">
               <input
-                type="email"
+                type="text"
                 className="form-control"
-                name="email"
-                value={formData.email}
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 required
-                minLength="8"
                 maxLength="128"
-                readOnly={user.id ? true : false}
               />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-4 col-form-label">First name:</label>
+            <label className="col-sm-4 col-form-label">Alias:</label>
             <div className="col-sm-8">
               <input
                 type="text"
                 className="form-control"
-                name="firstName"
-                value={formData.firstName}
+                name="alias"
+                value={formData.alias}
                 onChange={handleChange}
                 required
-                minLength="2"
                 maxLength="64"
               />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-4 col-form-label">Last name:</label>
+            <label className="col-sm-4 col-form-label">Parent category:</label>
             <div className="col-sm-8">
-              <input
-                type="text"
+              <select
                 className="form-control"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-                minLength="2"
-                maxLength="64"
-              />
+                name="parentId"
+                value={formData.parentId}
+                onChange={handleParentChange}
+              >
+                <option value="">[No parent]</option>
+                {categoriesInForm.map((cate) => (
+                  <option key={cate.id} value={cate.id}>
+                    {cate.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-          <div className="form-group row">
-            <label className="col-sm-4 col-form-label">Password:</label>
-            <div className="col-sm-8">
-              <input
-                type="password"
-                className="form-control"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required={user.id ? false : true}
-                minLength="6"
-                maxLength="64"
-                placeholder={
-                  user.id
-                    ? "leave blank if you don't want to change password"
-                    : ""
-                }
-              />
-            </div>
-          </div>
-          <div className="form-group row">
-            <label className="col-sm-4 col-form-label">
-              Roles (role_user is default):
-            </label>
-            <div className="col-sm-8">
-              {roles.map((role, i) => (
-                <div className="form-check" key={i}>
-                  <input
-                    type="checkbox"
-                    name="roles"
-                    value={role.toString()}
-                    onChange={handleCheckbox}
-                    checked={formData.roles.includes(role)}
-                    className="form-check-input"
-                  />
-                  <label className="form-check-label">
-                    {role.toLowerCase()}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
+
           <div className="form-group row">
             <label className="col-sm-4 col-form-label">Enabled:</label>
             <div className="col-sm-8">
@@ -228,7 +191,7 @@ function UserForm() {
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-4 col-form-label">Photo:</label>
+            <label className="col-sm-4 col-form-label">Image:</label>
             <div className="col-sm-8">
               <input
                 type="file"
@@ -238,7 +201,7 @@ function UserForm() {
               />
               <img
                 id="thumbnail"
-                src={image}
+                src={imagePreview}
                 alt="Preview"
                 className="image-fluid"
                 style={{ marginTop: "10px", width: "150px" }}
@@ -251,7 +214,7 @@ function UserForm() {
               type="button"
               value="Cancel"
               className="btn btn-secondary"
-              onClick={() => navigate("/users")}
+              onClick={() => navigate("/categories")}
             />
           </div>
         </div>
@@ -270,4 +233,4 @@ function UserForm() {
   );
 }
 
-export default UserForm;
+export default CategoryForm;
