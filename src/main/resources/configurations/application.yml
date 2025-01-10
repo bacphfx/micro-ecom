@@ -1,7 +1,7 @@
 spring:
   datasource:
-    username: ${MYSQL_USERNAME}
-    password: ${MY_SQL_PASSWORD}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWOR:BunDau2210}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -10,6 +10,12 @@ spring:
       hibernate:
         dialect:
           org.hibernate.dialect.MySQL8Dialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
+          jwk-set-uri: http://localhost:9000/oauth2/jwks
 
 eureka:
   client:
