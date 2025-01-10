@@ -3,6 +3,7 @@ package com.ecommerce.UserService.service;
 import com.ecommerce.UserService.entity.Role;
 import com.ecommerce.UserService.entity.User;
 import com.ecommerce.UserService.error.UserAlreadyExistsException;
+import com.ecommerce.UserService.error.UserNotFoundException;
 import com.ecommerce.UserService.model.UserRequest;
 import com.ecommerce.UserService.model.UserResponse;
 import com.ecommerce.UserService.repository.UserRepository;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @Transactional
@@ -30,7 +32,22 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Page<UserResponse> listAll(int pageNum, int pageSize, String sortBy, String sortDir, String keyword) {
+    public List<UserResponse> listAll() {
+        List<User> users = repository.findAll();
+        return users.stream().map(mapper::fromUser).toList();
+    }
+
+    @Override
+    public UserResponse findByEmail(String email) {
+        User user = repository.findByEmail(email);
+        if (user == null){
+            throw new EntityNotFoundException("User not found with email: " + email);
+        }
+        return mapper.fromUser(user);
+    }
+
+    @Override
+    public Page<UserResponse> listByPage(int pageNum, int pageSize, String sortBy, String sortDir, String keyword) {
         Sort sort = Sort.by(sortBy);
         sort = sortDir.equals("asc") ? sort.ascending() : sort.descending();
 
@@ -64,6 +81,8 @@ public class UserServiceImpl implements UserService {
         if (countById == null || countById == 0) {
             throw new EntityNotFoundException("User not found with ID: " + id);
         }
+        String userDir = "user-photos/" + id;
+        FileUploadUtil.removeDir(userDir);
         repository.deleteById(id);
         return String.format("User with ID: %s has been deleted successfully", id);
     }
@@ -81,7 +100,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(Long id, UserRequest userRequest) throws IOException {
         User user = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
         updateUserDetails(user, userRequest);
         MultipartFile file = userRequest.getFile();
         if (file != null && !file.isEmpty()) {
@@ -97,6 +116,8 @@ public class UserServiceImpl implements UserService {
         return mapper.fromUser(user);
 
     }
+
+
 
     private void updateUserDetails(User user, UserRequest userRequest) {
         user.setEmail(userRequest.getEmail());

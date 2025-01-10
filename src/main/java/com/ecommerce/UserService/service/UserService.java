@@ -5,9 +5,10 @@ import com.ecommerce.UserService.model.UserResponse;
 import org.springframework.data.domain.Page;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface UserService {
-    Page<UserResponse> listAll(int pageNum, int pageSize, String sortBy, String sortDir, String keyword);
+    Page<UserResponse> listByPage(int pageNum, int pageSize, String sortBy, String sortDir, String keyword);
 
     UserResponse createUser(UserRequest userRequest);
 
@@ -16,4 +17,8 @@ public interface UserService {
     String updateUserStatus(Long id, boolean enable);
 
     UserResponse updateUser(Long id, UserRequest userRequest) throws IOException;
+
+    List<UserResponse> listAll();
+
+    UserResponse findByEmail(String email);
 }

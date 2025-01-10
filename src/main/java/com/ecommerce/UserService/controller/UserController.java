@@ -10,22 +10,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
-@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
     private final UserService service;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PermitAll
     public ResponseEntity<UserResponse> createUser(@ModelAttribute @Valid UserRequest userRequest) throws IOException {
         MultipartFile file = userRequest.getFile();
         UserResponse userResponse;
@@ -43,17 +41,15 @@ public class UserController {
 
 
     @GetMapping
-    @PermitAll
     public ResponseEntity<Page<UserResponse>> findAll(@RequestParam(value = "page", defaultValue = "1") int pageNum,
                                                       @RequestParam(value = "limit", defaultValue = "4") int pageSize,
                                                       @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
                                                       @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir,
                                                       @RequestParam(value = "keyword", required = false) String keyword) {
-        return ResponseEntity.ok(service.listAll(pageNum, pageSize, sortBy, sortDir, keyword));
+        return ResponseEntity.ok(service.listByPage(pageNum, pageSize, sortBy, sortDir, keyword));
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PermitAll
     public ResponseEntity<UserResponse> updateUser(@PathVariable("id") Long id,
                                                    @ModelAttribute UserRequest userRequest) throws IOException {
         UserResponse userResponse = service.updateUser(id, userRequest);
@@ -66,9 +62,16 @@ public class UserController {
     }
 
     @PutMapping("/{id}/enable/{enable}")
-    @PermitAll
     public ResponseEntity<String> updateUserStatus(@PathVariable("id") Long id,
                                                    @PathVariable("enable") boolean enable) {
         return ResponseEntity.ok(service.updateUserStatus(id, enable));
     }
+
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+        String email = jwt.getClaimAsString("sub");
+        return ResponseEntity.ok(service.findByEmail(email));
+    }
+
 }
