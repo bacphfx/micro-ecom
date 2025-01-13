@@ -115,8 +115,8 @@ public class ServerSecurityConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:3000/login")
-                .scope("read")
-                .scope("write")
+//                .scope("read")
+//                .scope("write")
                 .clientSettings(ClientSettings.builder()
                         .requireAuthorizationConsent(false)
                         .build())
@@ -125,7 +125,17 @@ public class ServerSecurityConfig {
                         .refreshTokenTimeToLive(Duration.ofMinutes(3600))
                         .build())
                 .build();
-        return new InMemoryRegisteredClientRepository(client);
+        RegisteredClient brandService = RegisteredClient.withId("brand-service")
+                .clientId("brand-service")
+                .clientSecret(passwordEncoder().encode("123456"))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .scope("read")
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofMinutes(5))
+                        .build())
+                .build();
+        return new InMemoryRegisteredClientRepository(client, brandService);
     }
 
     @Bean
