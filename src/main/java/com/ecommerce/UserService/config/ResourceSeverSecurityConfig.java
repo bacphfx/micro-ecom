@@ -23,7 +23,7 @@ public class ResourceSeverSecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/").hasRole("ADMIN")
-                .requestMatchers("/me").hasAuthority("SCOPE_read")
+                .requestMatchers("/me").hasRole("USER")
                 .requestMatchers("/user-photos/**").permitAll()
                 .anyRequest().authenticated())
                 .cors(Customizer.withDefaults())
