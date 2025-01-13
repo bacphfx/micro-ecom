@@ -21,8 +21,8 @@ public class ResourceSeverSecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/").hasAnyRole("ADMIN", "EDITOR")
                 .requestMatchers("/category-images/**").permitAll()
+                .requestMatchers("/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_EDITOR", "SCOPE_read")
                 .anyRequest().authenticated())
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
