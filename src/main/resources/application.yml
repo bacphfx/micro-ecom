@@ -6,4 +6,20 @@ spring:
   cloud:
     config:
       fail-fast: false
+    openfeign:
+      oauth2:
+        enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          category-service:
+            authorizationGrantType: client_credentials
+            clientId: brand-service
+            clientSecret: 123456
+            scope: read
+            provider: micro-ecom
+        provider:
+          micro-ecom:
+            issuer-uri: http://localhost:9000
 

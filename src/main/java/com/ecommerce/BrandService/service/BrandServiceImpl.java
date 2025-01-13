@@ -60,7 +60,7 @@ public class BrandServiceImpl implements BrandService {
         sort = sortDir.equals("asc") ? sort.ascending() : sort.descending();
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize, sort);
         Page<Brand> brandPage;
-        if (keyword == null && keyword.isEmpty()) {
+        if (keyword == null || keyword.isEmpty()) {
              brandPage   = repository.findAll(pageable);
         } else {
             brandPage = repository.findAll(keyword, pageable);
