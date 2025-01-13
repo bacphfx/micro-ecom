@@ -13,7 +13,7 @@ function Login() {
   }, []);
 
   const login = () => {
-    const authURL = `${SERVER.auth_uri}/oauth2/authorize?client_id=${SERVER.clientId}&scope=${SERVER.scope}&redirect_uri=${SERVER.callback_uri}&response_type=code`;
+    const authURL = `${SERVER.auth_uri}/oauth2/authorize?client_id=${SERVER.clientId}&redirect_uri=${SERVER.callback_uri}&response_type=code`;
     window.location.href = authURL;
   };
 

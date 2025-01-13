@@ -8,9 +8,11 @@ import { UserEditedProvider } from "./context/UserEditedContext";
 import Login from "./page/login/Login";
 import ProtectedRoute from "./components/route/ProtectedRoute";
 import Unauthorize from "./page/error/Unauthorize";
-import NotFount from "./page/error/NotFount";
+import NotFound from "./page/error/NotFound";
 import Category from "./page/category/Category";
 import CategoryForm from "./page/category/CategoryForm";
+import Brand from "./page/brand/Brand";
+import BrandForm from "./page/brand/BrandForm";
 function App() {
   return (
     <div className="App">
@@ -19,7 +21,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />}></Route>
             <Route path="/unauthorize" element={<Unauthorize />}></Route>
-            <Route path="*" element={<NotFount />} />
+            <Route path="*" element={<NotFound />} />
             <Route element={<ProtectedRoute allowRoles={["ROLE_ADMIN"]} />}>
               <Route path="/users" element={<User />}></Route>
               <Route path="/users/save" element={<UserForm />}></Route>
@@ -31,6 +33,8 @@ function App() {
             >
               <Route path="/categories" element={<Category />}></Route>
               <Route path="/categories/save" element={<CategoryForm />}></Route>
+              <Route path="/brands" element={<Brand />}></Route>
+              <Route path="/brands/save" element={<BrandForm />}></Route>
             </Route>
             <Route
               element={

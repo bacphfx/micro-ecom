@@ -1,7 +1,7 @@
 import Footer from "../../components/footer/Footer";
 import Navbar from "../../components/navbar/Navbar";
 
-function NotFount() {
+function NotFound() {
   return (
     <div>
       <Navbar />
@@ -14,4 +14,4 @@ function NotFount() {
   );
 }
 
-export default NotFount;
+export default NotFound;

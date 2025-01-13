@@ -15,6 +15,11 @@ const Navbar = () => {
       label: "Categories",
       roles: ["ROLE_ADMIN", "ROLE_EDITOR"],
     },
+    {
+      path: "/brands",
+      label: "Brands",
+      roles: ["ROLE_ADMIN", "ROLE_EDITOR"],
+    },
   ];
 
   const canAccess = (userRoles, allowedRoles) => {
@@ -48,12 +53,6 @@ const Navbar = () => {
                 </li>
               ) : null
             )}
-
-            <li className="nav-item">
-              <a className="nav-link" href="/brands">
-                Brands
-              </a>
-            </li>
             <li className="nav-item">
               <a className="nav-link" href="/products">
                 Products

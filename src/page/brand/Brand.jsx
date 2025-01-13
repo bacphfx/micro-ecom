@@ -12,42 +12,42 @@ import { Link, useNavigate } from "react-router-dom";
 import Modal from "../../components/modal/Modal";
 import TableHeader from "../../components/fragments/TableHeader";
 import { useUserEdited } from "../../context/UserEditedContext";
-import CategoryAPI from "../../components/api/categoryAPI";
-import axios from "axios";
 import Pagination from "../../components/fragments/Pagination";
+import BrandAPI from "../../components/api/brandAPI";
 
-const Category = () => {
+const Brand = () => {
   const { message, setMessage } = useMessage();
   const { userEmail } = useUserEdited();
-  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [startCount, setStartCount] = useState(0);
   const [endCount, setEndCount] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [limit, setLimit] = useState(4);
-  const [sortBy, setSortBy] = useState("name");
+  const [sortBy, setSortBy] = useState("id");
   const [sortDir, setSortDir] = useState("asc");
   const [keyword, setKeyword] = useState(userEmail);
 
-  const [selectedCate, setSelectedCate] = useState(null);
+  const [selectedBrand, setSelectedBrand] = useState(null);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    document.title = "Categories";
+    document.title = "Brands";
   }, []);
 
   useEffect(() => {
-    const getCategories = async () => {
+    const getBrands = async () => {
       try {
-        const res = await CategoryAPI.getAllCategory(
+        const res = await BrandAPI.getAllBrands(
           page,
           limit,
+          sortBy,
           sortDir,
           keyword
         );
-        setCategories(res.content);
+        setBrands(res.content);
         setTotalElements(res.totalElements);
         setTotalPages(res.totalPages);
 
@@ -63,42 +63,29 @@ const Category = () => {
         console.log(error);
       }
     };
-    getCategories();
+    getBrands();
   }, [page, limit, sortBy, sortDir]);
 
-  const handleCategoryStatus = async (cate) => {
-    try {
-      const res = await CategoryAPI.updateStatus(cate.id, !cate.enable);
-      setMessage(res);
-      setCategories((prevCates) =>
-        prevCates.map((c) =>
-          c.id === cate.id ? { ...c, enable: !cate.enable } : c
-        )
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const handleEdit = (category) => {
-    navigate("/categories/save", { state: { category } });
+  const handleEdit = (brand) => {
+    navigate("/brands/save", { state: { brand } });
   };
 
-  const handleDelete = (category) => {
-    setSelectedCate(category);
+  const handleDelete = (brand) => {
+    setSelectedBrand(brand);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setSelectedCate(null);
+    setSelectedBrand(null);
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      const res = await CategoryAPI.deleteCategory(selectedCate.id);
+      const res = await BrandAPI.deleteBrand(selectedBrand.id);
       setMessage(res);
-      setCategories((prevCates) =>
-        prevCates.filter((cate) => cate.id !== selectedCate.id)
+      setBrands((prevBrands) =>
+        prevBrands.filter((b) => b.id !== selectedBrand.id)
       );
     } catch (error) {
       if (error.status === 403) {
@@ -122,13 +109,14 @@ const Category = () => {
     e.preventDefault();
     try {
       setPage(1);
-      const res = await CategoryAPI.getAllCategory(
+      const res = await BrandAPI.getAllBrands(
         page,
         limit,
+        sortBy,
         sortDir,
         keyword
       );
-      setCategories(res.content);
+      setBrands(res.content);
       setTotalElements(res.totalElements);
       setTotalPages(res.totalPages);
 
@@ -152,8 +140,8 @@ const Category = () => {
   return (
     <div className="container-fluid">
       <Navbar />
-      <h2>Manager Categories</h2>
-      <Link to="/categories/save">Create new category</Link>
+      <h2>Manager Brands</h2>
+      <Link to="/brands/save">Create new brand</Link>
       {message && (
         <div className="alert alert-success text-center">{message}</div>
       )}
@@ -176,29 +164,34 @@ const Category = () => {
         <table className="table table-bordered table-striped table-hover table-responsive-xl">
           <thead className="thead-dark">
             <tr>
-              <th>ID</th>
-              <th>Image</th>
               <TableHeader
-                label="Category Name"
-                field="name"
-                sortBy="name"
+                label="ID"
+                field="id"
+                sortBy={sortBy}
                 sortDir={sortDir}
                 onSort={handleSort}
               />
-              <th>Alias</th>
-              <th>Enabled</th>
+              <th>Logo</th>
+              <TableHeader
+                label="Brand Name"
+                field="name"
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <th>Categories</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {categories?.map((cate) => (
-              <tr key={cate.id}>
-                <td>{cate.id}</td>
+            {brands?.map((brand) => (
+              <tr key={brand.id}>
+                <td>{brand.id}</td>
                 <td>
-                  {cate.image ? (
+                  {brand.logo ? (
                     <img
-                      src={`http://localhost:8080/categories/${cate.image}`}
-                      alt="category"
+                      src={`http://localhost:8080/brands/${brand.logo}`}
+                      alt="brand logo"
                       className="image-fluid"
                       style={{ width: 150 }}
                     />
@@ -206,33 +199,27 @@ const Category = () => {
                     <PortraitIcon style={{ fontSize: 60, color: "gray" }} />
                   )}
                 </td>
-                <td>{cate.name}</td>
-                <td>{cate.alias}</td>
+                <td>{brand.name}</td>
                 <td>
-                  {cate.enable ? (
-                    <ToggleOnIcon
-                      style={{ fontSize: 30, color: "green" }}
-                      onClick={() => handleCategoryStatus(cate)}
-                    />
-                  ) : (
-                    <ToggleOffIcon
-                      style={{ fontSize: 30, color: "gray" }}
-                      onClick={() => handleCategoryStatus(cate)}
-                    />
-                  )}
+                  {brand?.categories.map((category) => (
+                    <span
+                      key={category.id}
+                      className="badge badge-secondary mr-1"
+                    >
+                      {category.name}
+                    </span>
+                  ))}
                 </td>
                 <td>
                   <EditIcon
                     style={{ color: "green", fontSize: 30 }}
-                    onClick={() => handleEdit(cate)}
+                    onClick={() => handleEdit(brand)}
                   />{" "}
                   &nbsp;{" "}
-                  {!cate.hasChildren && (
-                    <DeleteIcon
-                      style={{ color: "gray", fontSize: 30 }}
-                      onClick={() => handleDelete(cate)}
-                    />
-                  )}
+                  <DeleteIcon
+                    style={{ color: "gray", fontSize: 30 }}
+                    onClick={() => handleDelete(brand)}
+                  />
                 </td>
               </tr>
             ))}
@@ -242,11 +229,11 @@ const Category = () => {
       <div className="text-center m-1">
         {totalElements > 0 ? (
           <span>
-            Showing categories #{startCount} to {endCount} of {totalElements}{" "}
+            Showing brands #{startCount} to {endCount} of {totalElements}{" "}
             elements
           </span>
         ) : (
-          <span>No category found</span>
+          <span>No brand found</span>
         )}
       </div>
       {totalPages > 1 && (
@@ -259,7 +246,7 @@ const Category = () => {
       {showModal && (
         <Modal
           title="Delete confirmation"
-          message={`Are you sure you want to delete this category ID ${selectedCate.id}?`}
+          message={`Are you sure you want to delete this brand ID ${selectedBrand.id}?`}
           onConfirm={handleDeleteConfirm}
           onClose={handleCloseModal}
           type="confirm"
@@ -269,4 +256,4 @@ const Category = () => {
     </div>
   );
 };
-export default Category;
+export default Brand;

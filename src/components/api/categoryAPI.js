@@ -1,7 +1,7 @@
 import axiosClient from "../../utils/axios";
 const CategoryAPI = {
   getAllCategory: (page, limit, sortDir, keyword) => {
-    const url = `/categories?page=${page}&limit=${limit}&sortDir=${sortDir}`;
+    const url = `/categories?page=${page}&limit=${limit}&sortDir=${sortDir}&keyword=${keyword}`;
     return axiosClient.get(url);
   },
   getCategoryDetails: (id) => {
