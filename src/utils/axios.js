@@ -5,7 +5,7 @@ export const SERVER = {
   auth_uri: "http://localhost:9000",
   clientId: "ecommerce",
   clientSecret: "123456",
-  scope: "read write",
+  // scope: "read write",
   callback_uri: "http://localhost:3000/login",
 };
 

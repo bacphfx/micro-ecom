@@ -9,6 +9,7 @@ const BrandAPI = {
     const url = "/brands";
     return axiosClient.post(url, data);
   },
+
   editBrand: (id, data) => {
     const url = `/brands/${id}`;
     return axiosClient.put(url, data, {
@@ -21,9 +22,15 @@ const BrandAPI = {
     const url = `/brands/${id}`;
     return axiosClient.delete(url);
   },
-  updateStatus: (id, enable) => {
-    const url = `/users/${id}/enable/${enable}`;
-    return axiosClient.put(url);
+
+  getBrandsForProduct: () => {
+    const url = "/brands/product-form";
+    return axiosClient.get(url);
+  },
+
+  getBrand: (id) => {
+    const url = `/brands/${id}`;
+    return axiosClient.get(url);
   },
 };
 export default BrandAPI;

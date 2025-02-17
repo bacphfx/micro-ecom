@@ -13,6 +13,8 @@ import Category from "./page/category/Category";
 import CategoryForm from "./page/category/CategoryForm";
 import Brand from "./page/brand/Brand";
 import BrandForm from "./page/brand/BrandForm";
+import Product from "./page/product/Product";
+import ProductForm from "./page/product/ProductForm";
 function App() {
   return (
     <div className="App">
@@ -35,6 +37,7 @@ function App() {
               <Route path="/categories/save" element={<CategoryForm />}></Route>
               <Route path="/brands" element={<Brand />}></Route>
               <Route path="/brands/save" element={<BrandForm />}></Route>
+              <Route path="/products/save" element={<ProductForm />}></Route>
             </Route>
             <Route
               element={
@@ -44,6 +47,7 @@ function App() {
               }
             >
               <Route path="/" element={<Home />}></Route>
+              <Route path="/products" element={<Product />}></Route>
             </Route>
           </Routes>
         </UserEditedProvider>
